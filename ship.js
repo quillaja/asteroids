@@ -11,7 +11,7 @@ class Ship {
      * Creates a ship.
      */
     constructor() {
-        this.pos = createVector(width / 2, height / 2);
+        this.pos = createVector(0, 0);
         this.vel = createVector(0, 0);
         this.dir = 0;
         this.radius = 10;
@@ -136,10 +136,10 @@ class Ship {
         // move ship
         this.pos.add(this.vel);
         // wrap screen
-        if (this.pos.x < 0) { this.pos.x = width; }
-        else if (this.pos.x > width) { this.pos.x = 0; }
-        if (this.pos.y < 0) { this.pos.y = height; }
-        else if (this.pos.y > height) { this.pos.y = 0; }
+        // if (this.pos.x < 0) { this.pos.x = width; }
+        // else if (this.pos.x > width) { this.pos.x = 0; }
+        // if (this.pos.y < 0) { this.pos.y = height; }
+        // else if (this.pos.y > height) { this.pos.y = 0; }
     }
 
     /**
@@ -162,10 +162,12 @@ class Ship {
         // stroke(0, 0, 255);
         // ellipse(0, 0, this.radius * 2);
 
+        pop();
+
         // shield display
-        // unrotate and untranslate back to normal coords.
-        rotate(-this.dir);
-        translate(-this.pos.x, -this.pos.y);
+        // untranslate back to screen coords.
+        push();
+        translate(cam.center.x - width / 2, cam.center.y - height / 2);
         fill(255, 0, 0);
         rect(5, 5, this.shields, 20);
         noFill();
@@ -179,7 +181,7 @@ class Ship {
         text("Shield", 7, 9);//6, 5);
         text(`Score: ${this.score}`, 7, 30);//5, 24);
         text(`Weapon: ${this.weapon.name}`, 7, 50); //5, 40);
-
         pop();
+
     }
 }

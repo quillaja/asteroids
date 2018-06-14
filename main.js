@@ -13,6 +13,11 @@ let asteroids = [];
 let spawnCounter = 0;
 const spawnAfter = 180; // frames
 
+/**
+ * @type {Camera}
+ */
+let cam;
+
 let font;
 
 function setup() {
@@ -74,8 +79,9 @@ function initialize(restart = false) {
     }
 
     spawnCounter = 0;
-    if (restart) { ship.isGod = true; ship.isAlive = true; ship.shields = 0; }
-    else { ship = new Ship(); }
+    ship = new Ship();
+    if (restart) { ship.isGod = true; }
+    cam = new Camera(100);
     asteroids = Asteroid.Generate(1);
 }
 
@@ -88,7 +94,10 @@ function draw() {
     asteroids.forEach((a) => a.update());
 
     // build quadtree
-    let tree = new QuadTree(new Rect(0, 0, width, height), 5);
+    let tree = new QuadTree(new Rect(
+        cam.center.x - width / 2, cam.center.y - height / 2,
+        cam.center.x + width / 2, cam.center.y + height / 2), 5);
+
     for (const a of asteroids) {
         let p = new Point(a.pos.x, a.pos.y);
         p.data = a; // attach asteroid
@@ -153,6 +162,8 @@ function draw() {
 
     // draw /////////////////////
 
+    cam.translate(ship);
+
     ship.bullets.forEach((b) => b.draw());
     asteroids.forEach((a) => a.draw());
     ship.draw();
@@ -181,4 +192,41 @@ function AABB(a, b) {
  */
 function CircleCircle(a, b) {
     return b.pos.dist(a.pos) <= a.radius + b.radius;
+}
+
+class Camera {
+    constructor(edgeBufferWidth) {
+        this.bufferWidth = edgeBufferWidth;
+        this.center = createVector(0, 0);
+        this.width = width - 2 * edgeBufferWidth;
+        this.height = height - 2 * edgeBufferWidth;
+        this.relFarCorner = createVector(this.width / 2, this.height / 2);
+    }
+
+    /**
+     * keep camera where it belongs
+     * @param {Ship} ship the ship
+     */
+    translate(ship) {
+        let dx = 0;
+        let dy = 0;
+
+        if (ship.pos.x > this.center.x + this.width / 2) {
+            dx = ship.pos.x - (this.center.x + this.width / 2);
+        } else if (ship.pos.x < this.center.x - this.width / 2) {
+            dx = ship.pos.x - (this.center.x - this.width / 2);
+        }
+
+        if (ship.pos.y > this.center.y + this.height / 2) {
+            dy = ship.pos.y - (this.center.y + this.height / 2);
+        } else if (ship.pos.y < this.center.y - this.height / 2) {
+            dy = ship.pos.y - (this.center.y - this.height / 2);
+        }
+
+        this.center.x += dx;
+        this.center.y += dy;
+        // console.log(this.center.x, this.center.y);
+        // translate center of screen to camera position.
+        translate(width / 2 - this.center.x, height / 2 - this.center.y);
+    }
 }

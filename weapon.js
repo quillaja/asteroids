@@ -27,8 +27,12 @@ class Bullet {
         this.pos.add(this.vel);
 
         // deal with screen edges
-        if (this.pos.x < 0 || this.pos.x > width) { this.isAlive = false; }
-        if (this.pos.y < 0 || this.pos.y > height) { this.isAlive = false; }
+        if (this.pos.x < cam.center.x - width / 2 ||
+            this.pos.x > cam.center.x + width / 2 ||
+            this.pos.y < cam.center.y - height / 2 ||
+            this.pos.y > cam.center.y + height / 2) {
+            this.isAlive = false;
+        }
     }
 
     /**
