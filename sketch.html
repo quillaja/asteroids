@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.sound.js"></script>
     <script src="kvstore.js"></script>
     <script src="quadtree.js"></script>
     <script src="weapon.js"></script>
@@ -19,6 +20,7 @@
         body,
         canvas {
             font-family: 'Press Start 2P', monospace;
+            color: white;
             margin: 0;
             padding: 0;
             background-color: rgb(5, 5, 5);
@@ -34,7 +36,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(0, 0, 0, 0.5);
         }
 
         #score-display-inner {
@@ -42,7 +44,7 @@
             position: absolute;
             height: 55%;
             width: 50%;
-            min-height: 500px;
+            min-height: 550px;
             min-width: 500px;
             top: 0;
             bottom: 0;
