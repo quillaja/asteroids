@@ -68,12 +68,13 @@ class Asteroid {
     update() {
         // move
         this.pos.add(this.vel);
+
         // wrap screen
-        // const margin = 100;
-        // if (this.pos.x < -margin) { this.pos.x = width + margin; }
-        // else if (this.pos.x > width + margin) { this.pos.x = -margin; }
-        // if (this.pos.y < -margin) { this.pos.y = height + margin; }
-        // else if (this.pos.y > height + margin) { this.pos.y = -margin; }
+        const margin = 100;
+        if (this.pos.x < -margin - worldHalfWidth) { this.pos.x = worldHalfWidth + margin; }
+        else if (this.pos.x > worldHalfWidth + margin) { this.pos.x = -margin - worldHalfWidth; }
+        if (this.pos.y < -margin - worldHalfHeight) { this.pos.y = worldHalfHeight + margin; }
+        else if (this.pos.y > worldHalfHeight + margin) { this.pos.y = -margin - worldHalfHeight; }
     }
 
     /**
@@ -118,7 +119,7 @@ class Asteroid {
         for (; num > 0; num--) {
             let spawnLoc = p5.Vector.fromAngle(random(0, TWO_PI), dist(0, 0, width / 2, height / 2));
             let reverseHeading = spawnLoc.heading() + PI + random(-PI / 6, PI / 6);
-            spawnLoc.mult(1.1).add(cam.center.x,cam.center.y); // lengthen slightly and translate to screen center
+            spawnLoc.mult(1.1).add(cam.center.x, cam.center.y); // lengthen slightly and translate to screen center
 
             roids.push(new Asteroid(spawnLoc, reverseHeading, radius));
         }

@@ -18,6 +18,9 @@ const spawnAfter = 180; // frames
  */
 let cam;
 
+const worldHalfWidth = 5000;
+const worldHalfHeight = 5000;
+
 let font;
 
 function setup() {
@@ -28,7 +31,7 @@ function setup() {
     // can't xss load using file:// protocol
     loadFont("PressStart2P.ttf",
         (f) => textFont(f),
-        (e) => { textFont("VT323"); console.log("error with 'Press Start 2P': " + e); });
+        (e) => { textFont("monospace"); console.log("error with 'Press Start 2P': " + e); });
 }
 
 function initialize(restart = false) {
@@ -81,7 +84,7 @@ function initialize(restart = false) {
     spawnCounter = 0;
     ship = new Ship();
     if (restart) { ship.isGod = true; }
-    cam = new Camera(100);
+    cam = new Camera(200);
     asteroids = Asteroid.Generate(1);
 }
 
@@ -91,17 +94,20 @@ function draw() {
     // update positions
     ship.update();
     ship.bullets.forEach((b) => b.update());
-    asteroids.forEach((a) => a.update());
+    // asteroids.forEach((a) => a.update());
 
     // build quadtree
+    const treeMargin = 200;
     let tree = new QuadTree(new Rect(
-        cam.center.x - width / 2, cam.center.y - height / 2,
-        cam.center.x + width / 2, cam.center.y + height / 2), 5);
+        cam.center.x - width / 2 - treeMargin, cam.center.y - height / 2 - treeMargin,
+        cam.center.x + width / 2 + treeMargin, cam.center.y + height / 2 + treeMargin), 5);
 
     for (const a of asteroids) {
         let p = new Point(a.pos.x, a.pos.y);
         p.data = a; // attach asteroid
-        tree.insert(p);
+        if (tree.insert(p)) {
+            a.update();
+        }
     }
 
     // perform collisions
@@ -149,10 +155,6 @@ function draw() {
     if (spawnCounter >= spawnAfter) {
         asteroids.push(...Asteroid.Generate(1));
         spawnCounter = 0;
-        // console.log(
-        //     ceil(frameRate()),
-        //     asteroids.length,
-        //     maxCollisionTests);
     }
 
     // check ship state. restart game if it's dead
@@ -164,9 +166,27 @@ function draw() {
 
     cam.translate(ship);
 
+    // background grid
+    const size = 500;
+    let grid = createVector(size * floor(cam.center.x / size), size * floor(cam.center.y / size));
+    let linecount = createVector(ceil(width / size / 2), ceil(height / size / 2));
+    stroke(50);
+    for (let x = grid.x - size * linecount.x; x <= grid.x + size * linecount.x; x += size) {
+        line(x, ship.pos.y + height, x, ship.pos.y - height);
+    }
+    for (let y = grid.y - size * linecount.y; y <= grid.y + size * linecount.y; y += size) {
+        line(ship.pos.x + width, y, ship.pos.x - width, y);
+    }
+    // console.log(linecount);
+
     ship.bullets.forEach((b) => b.draw());
     asteroids.forEach((a) => a.draw());
     ship.draw();
+
+    // show stats if fps drops too low
+    if (frameRate() < 40) {
+        console.log(`${ceil(frameRate())}fps ${asteroids.length} asteroids ${maxCollisionTests} max col.`);
+    }
 }
 
 /**
@@ -198,9 +218,8 @@ class Camera {
     constructor(edgeBufferWidth) {
         this.bufferWidth = edgeBufferWidth;
         this.center = createVector(0, 0);
-        this.width = width - 2 * edgeBufferWidth;
-        this.height = height - 2 * edgeBufferWidth;
-        this.relFarCorner = createVector(this.width / 2, this.height / 2);
+        this.halfWidth = (width - 2 * edgeBufferWidth) / 2;
+        this.halfHeight = (height - 2 * edgeBufferWidth) / 2;
     }
 
     /**
@@ -211,21 +230,23 @@ class Camera {
         let dx = 0;
         let dy = 0;
 
-        if (ship.pos.x > this.center.x + this.width / 2) {
-            dx = ship.pos.x - (this.center.x + this.width / 2);
-        } else if (ship.pos.x < this.center.x - this.width / 2) {
-            dx = ship.pos.x - (this.center.x - this.width / 2);
+        if (ship.pos.x > this.center.x + this.halfWidth) {
+            dx = ship.pos.x - (this.center.x + this.halfWidth);
+        } else if (ship.pos.x < this.center.x - this.halfWidth) {
+            dx = ship.pos.x - (this.center.x - this.halfWidth);
         }
 
-        if (ship.pos.y > this.center.y + this.height / 2) {
-            dy = ship.pos.y - (this.center.y + this.height / 2);
-        } else if (ship.pos.y < this.center.y - this.height / 2) {
-            dy = ship.pos.y - (this.center.y - this.height / 2);
+        if (ship.pos.y > this.center.y + this.halfHeight) {
+            dy = ship.pos.y - (this.center.y + this.halfHeight);
+        } else if (ship.pos.y < this.center.y - this.halfHeight) {
+            dy = ship.pos.y - (this.center.y - this.halfHeight);
         }
 
         this.center.x += dx;
         this.center.y += dy;
-        // console.log(this.center.x, this.center.y);
+        this.center.x = constrain(this.center.x, -worldHalfWidth + width / 2, worldHalfWidth - width / 2);
+        this.center.y = constrain(this.center.y, -worldHalfHeight + height / 2, worldHalfHeight - height / 2);
+
         // translate center of screen to camera position.
         translate(width / 2 - this.center.x, height / 2 - this.center.y);
     }

@@ -135,11 +135,12 @@ class Ship {
         this.vel.mult(0.995); //tiny bit of dampening
         // move ship
         this.pos.add(this.vel);
+
         // wrap screen
-        // if (this.pos.x < 0) { this.pos.x = width; }
-        // else if (this.pos.x > width) { this.pos.x = 0; }
-        // if (this.pos.y < 0) { this.pos.y = height; }
-        // else if (this.pos.y > height) { this.pos.y = 0; }
+        if (this.pos.x < -worldHalfWidth) { this.pos.x = worldHalfWidth; }
+        else if (this.pos.x > worldHalfWidth) { this.pos.x = -worldHalfWidth; }
+        if (this.pos.y < -worldHalfHeight) { this.pos.y = worldHalfHeight; }
+        else if (this.pos.y > worldHalfHeight) { this.pos.y = -worldHalfHeight; }
     }
 
     /**
@@ -181,6 +182,9 @@ class Ship {
         text("Shield", 7, 9);//6, 5);
         text(`Score: ${this.score}`, 7, 30);//5, 24);
         text(`Weapon: ${this.weapon.name}`, 7, 50); //5, 40);
+
+        textSize(14);
+        text(`Loc: ${this.pos.x.toFixed(1)}, ${this.pos.y.toFixed(1)}`, 7, 70);
         pop();
 
     }
