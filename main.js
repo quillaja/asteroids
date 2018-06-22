@@ -94,10 +94,10 @@ function draw() {
     // update positions
     ship.update();
     ship.bullets.forEach((b) => b.update());
-    // asteroids.forEach((a) => a.update());
+    asteroids.forEach((a) => a.update());
 
     // build quadtree
-    const treeMargin = 200;
+    const treeMargin = 0;
     let tree = new QuadTree(new Rect(
         cam.center.x - width / 2 - treeMargin, cam.center.y - height / 2 - treeMargin,
         cam.center.x + width / 2 + treeMargin, cam.center.y + height / 2 + treeMargin), 5);
@@ -105,9 +105,7 @@ function draw() {
     for (const a of asteroids) {
         let p = new Point(a.pos.x, a.pos.y);
         p.data = a; // attach asteroid
-        if (tree.insert(p)) {
-            a.update();
-        }
+        tree.insert(p)
     }
 
     // perform collisions
@@ -180,7 +178,8 @@ function draw() {
     // console.log(linecount);
 
     ship.bullets.forEach((b) => b.draw());
-    asteroids.forEach((a) => a.draw());
+    // asteroids.forEach((a) => a.draw());
+    tree.query(tree.range).forEach(p => p.data.draw()); // draws only asteroids on visible screen
     ship.draw();
 
     // show stats if fps drops too low

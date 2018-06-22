@@ -183,8 +183,8 @@ class Ship {
         text(`Score: ${this.score}`, 7, 30);//5, 24);
         text(`Weapon: ${this.weapon.name}`, 7, 50); //5, 40);
 
-        textSize(14);
-        text(`Loc: ${this.pos.x.toFixed(1)}, ${this.pos.y.toFixed(1)}`, 7, 70);
+        text(`Loc: ${this.pos.x.toFixed(0)}, ${this.pos.y.toFixed(0)}`, 7, 70);
+        text(`FPS: ${frameRate().toFixed(0)}`, 7, 90);
         pop();
 
     }
