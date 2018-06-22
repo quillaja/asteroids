@@ -21,8 +21,6 @@ let cam;
 const worldHalfWidth = 5000;
 const worldHalfHeight = 5000;
 
-let font;
-
 let sounds = {
     /**
      * @type {p5.SoundFile}
@@ -36,6 +34,8 @@ let sounds = {
 }
 
 function preload() {
+
+    // TODO: make it so that if sound can't load, keep going (not "fail")
     try {
         loadSound("sound/explosion_short.mp3",
             (s) => { sounds.explosion = s; sounds.explosion.setVolume(0.5); },
@@ -51,12 +51,25 @@ function preload() {
 function setup() {
     createCanvas(windowWidth, windowHeight - 10);
 
-    initialize();
+    showIntro();
 
     // can't xss load using file:// protocol
+    // use monospace as fallback
     loadFont("PressStart2P.ttf",
         (f) => textFont(f),
         (e) => { textFont("monospace"); console.log("error with 'Press Start 2P': " + e); });
+}
+
+function showIntro() {
+    let intro = document.getElementById("intro-display");
+    let button = document.getElementById("intro-close-btn");
+    button.onclick = () => {
+        intro.hidden = true;
+        initialize();
+    }
+
+    intro.hidden = false;
+    initialize();
 }
 
 function initialize(restart = false) {
@@ -235,7 +248,8 @@ function AABB(a, b) {
  * @returns {boolean} true if the circles collide
  */
 function CircleCircle(a, b) {
-    return b.pos.dist(a.pos) <= a.radius + b.radius;
+    let sumR = a.radius + b.radius;
+    return p5.Vector.sub(a.pos, b.pos).magSq() <= sumR * sumR;
 }
 
 class Camera {

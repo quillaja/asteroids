@@ -25,7 +25,7 @@
             background-color: rgb(5, 5, 5);
         }
 
-        #score-display {
+        .box {
             font-size: 30px;
             text-align: center;
             color: white;
@@ -38,11 +38,11 @@
             background-color: rgba(0, 0, 0, 0.5);
         }
 
-        #score-display-inner {
+        .box-inner {
             overflow-y: auto;
             position: absolute;
-            height: 55%;
-            width: 50%;
+            height: 60%;
+            width: 60%;
             min-height: 550px;
             min-width: 500px;
             top: 0;
@@ -53,7 +53,7 @@
             background-color: rgba(50, 50, 50, 1);
         }
 
-        #score-close-btn {
+        .button {
             font-size: 20px;
             font-family: 'Press Start 2P', monospace;
             background-color: black;
@@ -61,6 +61,44 @@
             padding: 0.7rem;
             margin: 1rem;
             border: 2px solid gray;
+        }
+
+        #score-display {
+            /* font-size: 30px;
+            text-align: center;
+            color: white;
+
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.5); */
+        }
+
+        #score-display-inner {
+            height: 55%;
+            width: 50%;
+            min-height: 550px;
+            min-width: 500px;
+            /* overflow-y: auto;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            background-color: rgba(50, 50, 50, 1); */
+        }
+
+        #score-close-btn {
+            /* font-size: 20px;
+            font-family: 'Press Start 2P', monospace;
+            background-color: black;
+            color: white;
+            padding: 0.7rem;
+            margin: 1rem;
+            border: 2px solid gray; */
         }
 
         #name-input {
@@ -93,19 +131,41 @@
             grid-column: 2;
             text-align: right;
         }
+
+        #intro-display-inner {
+            width: 50%;
+        }
+
+        #intro-display-inner>p,
+        #intro-display-inner>ul {
+            font-size: 20px;
+        }
     </style>
 </head>
 
 <body>
-    <section id="score-display" hidden>
-        <div id="score-display-inner">
+    <section id="intro-display" class="box" hidden>
+        <div id="intro-display-inner" class="box-inner">
+            <h3>ASTEROIDS</h3>
+            <p>&mdash;&mdash;&mdash;</p>
+            <p>Explore an expansive universe, destroy asteroids, become legend.</p>
+            <p>&mdash;&mdash;&mdash;</p>
+            <p>Space - Fire weapon</p>
+            <p>Z &amp; Z - Previous/Next weapon</p>
+            <p>Left &amp; Right arrows - Rotate ship</p>
+            <p>Up arrow - Fire ship thruster</p>
+            <button id="intro-close-btn" class="button">Start</button>
+        </div>
+    </section>
+    <section id="score-display" class="box" hidden>
+        <div id="score-display-inner" class="box-inner">
             <h3>Final Score</h3>
             <p id="final-score"></p>
             <div id="score-display-list" hidden>
                 <div class="score"></div>
             </div>
             <!-- <input id="name-input" type="text" placeholder="Enter your name" hidden> -->
-            <button id="score-close-btn">Done</button>
+            <button id="score-close-btn" class="button">Done</button>
         </div>
     </section>
 </body>
