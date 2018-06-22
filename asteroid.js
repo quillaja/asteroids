@@ -48,6 +48,7 @@ class Asteroid {
         if (this.life <= 0) {
             this.isAlive = false;
             // split into 2
+            sounds.explosion.play();
             if (this.radius > 8) { // don't want them getting smaller than 8!
                 for (let i = 0; i < 2; i++) {
                     frags.push(new Asteroid(

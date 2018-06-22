@@ -23,6 +23,31 @@ const worldHalfHeight = 5000;
 
 let font;
 
+let sounds = {
+    /**
+     * @type {p5.SoundFile}
+     */
+    explosion: null,
+
+    /**
+     * @type {p5.SoundFile}
+     */
+    laser: null
+}
+
+function preload() {
+    try {
+        loadSound("sound/explosion_short.mp3",
+            (s) => { sounds.explosion = s; sounds.explosion.setVolume(0.5); },
+            (e) => console.log("explosion: " + e));
+        loadSound("sound/laser_short.mp3",
+            (s) => { sounds.laser = s; sounds.laser.setVolume(0.5); },
+            (e) => console.log("laser: " + e));
+    } catch (err) {
+        console.log("sound loading: " + err);
+    }
+}
+
 function setup() {
     createCanvas(windowWidth, windowHeight - 10);
 

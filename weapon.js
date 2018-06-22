@@ -95,6 +95,7 @@ class Weapon {
      */
     fire(ship) {
         this.reloadRemaining = this.reloadTime;
+        sounds.laser.play();
         return this.generate(ship.pos, ship.dir);
     }
 }
