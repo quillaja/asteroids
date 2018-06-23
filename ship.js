@@ -26,12 +26,13 @@ class Ship {
         this.invulnerableColor = color(255, 255, 0);
         this.isGod = false;
 
+        /**
+         * @type {Weapon[]} list of weapons availiable to the ship
+         */
+        this.weapons = [];
         this.weaponIndex = 0;
-        this.weapon = arsenal[this.weaponIndex];
+        this.giveWeapon(0);
         this.weaponSwitchWait = Ship.WEAPON_SWITCH_TIME;
-        // TODO: change weapons to a list of indicies into "arsenal" which
-        // indicate which weapons the ship can access. then weaponIndex is the
-        // index into this list of indicies.
 
         /**
          * the ship keeps the list of bullets it fired.
@@ -51,6 +52,26 @@ class Ship {
      * @returns True if the ship can switch weapons.
      */
     get canSwitchWeapon() { return this.weaponSwitchWait <= 0; }
+
+    /**
+     * Gives the ship an instance of the specified weapon, or overwrites an old
+     * instance if one is already in weapons[] (therefore renewing the weapon).
+     * @param {number} arsenalIndex index of weapon type in the Arsenal
+     * @returns {number} the index in weapons[] of the given weapon. -1 if the index is invalid
+     */
+    giveWeapon(arsenalIndex) {
+        let newWeapon = Arsenal.Get(arsenalIndex);
+        if (newWeapon == undefined) { return -1; }
+
+        let i = this.weapons.findIndex(w => w.name == newWeapon.name);
+        if (i >= 0) {
+            this.weapons[i] = newWeapon;
+            return i;
+        } else {
+            this.weapons.push(newWeapon);
+            return this.weapons.length - 1;
+        }
+    }
 
     /**
      * Reduces ship's shield (life). Controls alive/dead state, as well as 
@@ -80,7 +101,7 @@ class Ship {
         }
 
         // alter reload
-        this.weapon.reduceReload();
+        this.weapons[this.weaponIndex].reduceReload();
         this.weaponSwitchWait--;
         // alter invulnerability (post hit)
         if (this.isInvulnerable) {
@@ -103,27 +124,25 @@ class Ship {
             r += Ship.TURN_SPEED;
         }
         if (keyIsDown(32)) { // SPACE
-            // if 'reload' time ok, fire bullet. else nothing.
-            if (this.weapon.canFire) {
+            // if 'reload' time, ammo, etc ok, fire bullet. else nothing.
+            if (this.weapons[this.weaponIndex].canFire) {
                 // fire
-                this.bullets.push(...this.weapon.fire(this));
+                this.bullets.push(...this.weapons[this.weaponIndex].fire(this));
             }
         }
         if (this.canSwitchWeapon) {
             if (keyIsDown(88)) { // X
                 this.weaponIndex++;
-                if (this.weaponIndex >= arsenal.length) {
+                if (this.weaponIndex >= this.weapons.length) {
                     this.weaponIndex = 0;
                 }
-                this.weapon = arsenal[this.weaponIndex];
                 this.weaponSwitchWait = Ship.WEAPON_SWITCH_TIME;
             }
             if (keyIsDown(90)) { // Z
                 this.weaponIndex--;
                 if (this.weaponIndex < 0) {
-                    this.weaponIndex = arsenal.length - 1;
+                    this.weaponIndex = this.weapons.length - 1;
                 }
-                this.weapon = arsenal[this.weaponIndex];
                 this.weaponSwitchWait = Ship.WEAPON_SWITCH_TIME;
             }
         }
@@ -179,23 +198,26 @@ class Ship {
 
         pop();
 
-        // shield display
+        // HUD display
         // untranslate back to screen coords.
         push();
         translate(cam.center.x - width / 2, cam.center.y - height / 2);
+
         fill(255, 0, 0);
-        rect(5, 5, this.shields, 20);
+        rect(5, 5, this.shields, 20); // shield fill
+        rect(5, 28, 100 * this.weapons[this.weaponIndex].ammoRemaining(), 20); // ammo fill
         noFill();
         stroke(255);
-        rect(5, 5, 100, 20);
-        textAlign(LEFT, TOP);
+        rect(5, 5, 100, 20); // shield outline
+        rect(5, 28, 100, 20); // ammo outline
 
         // textFont('monospace');
+        textAlign(LEFT, TOP);
         textSize(14);
         fill(255);
-        text("Shield", 7, 9);//6, 5);
-        text(`Score: ${this.score}`, 7, 30);//5, 24);
-        text(`Weapon: ${this.weapon.name}`, 7, 50); //5, 40);
+        text("Shield", 7, 9);
+        text(this.weapons[this.weaponIndex].name, 7, 30);
+        text(`Score: ${this.score}`, 7, 50);
 
         text(`Loc: ${this.pos.x.toFixed(0)}, ${this.pos.y.toFixed(0)}`, 7, 70);
         text(`FPS: ${frameRate().toFixed(0)}`, 7, 90);
