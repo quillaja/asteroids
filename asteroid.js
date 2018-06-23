@@ -1,3 +1,14 @@
+const asteroidPalette = [
+    [78, 59, 35],
+    [75, 54, 33],
+    [73, 56, 39],
+    [73, 50, 33],
+    [71, 58, 46],
+    [71, 57, 44],
+    [70, 63, 56],
+    [226, 232, 242], // ice
+];
+
 class Asteroid {
     static get MAX_SPEED() { return 16; } // pixels/frame
 
@@ -12,8 +23,7 @@ class Asteroid {
         this.vel = p5.Vector.fromAngle(dir, Asteroid.MAX_SPEED / radius + random());
 
         this.radius = radius;
-        this.col = color(75, 54, 33);
-        // this.col = color(255);
+        this.col = color(...random(asteroidPalette));
 
         this.life = radius / 16;
         this.isAlive = true;
@@ -23,7 +33,7 @@ class Asteroid {
          * @type {p5.Vector[]}
          */
         this.verts = [];
-        let n = 8;//floor(random(this.radius * 0.3, this.radius));
+        let n = 12;//floor(random(this.radius * 0.3, this.radius));
         if (this.radius <= 16) {
             n = 6; // lower detail for smaller ones
         }
@@ -33,7 +43,6 @@ class Asteroid {
                 this.radius + random(-0.25 * this.radius, 0.25 * this.radius));
             this.verts.push(v);
         }
-        // this.verts.push(this.verts[0].copy());
     }
 
     /**
@@ -51,12 +60,14 @@ class Asteroid {
             sounds.explosion.play();
             if (this.radius > 8) { // don't want them getting smaller than 8!
                 for (let i = 0; i < 2; i++) {
-                    frags.push(new Asteroid(
+                    let f = new Asteroid(
                         this.pos.copy(),
                         this.vel.heading() + random(-HALF_PI, HALF_PI),
                         this.radius / 2
                         // starting with 64 will produce: 64,32,16,8.
-                    ));
+                    );
+                    f.col = this.col;
+                    frags.push(f);
                 }
             }
         }
