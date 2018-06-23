@@ -156,7 +156,21 @@ class Ship {
         }
         translate(this.pos);
         rotate(this.dir);
-        triangle(16, 0, -6, 5, -6, -5);
+        triangle(16, 0, -6, 5, -6, -5); // ship body
+        fill(60);
+        triangle(12, 0, -0, 3, 0, -3); // cockpit
+
+        // ship thrusters
+        stroke(color(192, 64, 0));
+        strokeWeight(2);
+        let jetlen = 0;
+        if (keyIsDown(UP_ARROW)) { jetlen = 2; }
+        if (keyIsDown(LEFT_ARROW) || jetlen > 0) {
+            line(-6, 3, -10 - jetlen, 3); // thruster on "right" side
+        }
+        if (keyIsDown(RIGHT_ARROW) || jetlen > 0) {
+            line(-6, -3, -10 - jetlen, -3); // thruster on "left" side
+        }
 
         // display hit circle
         // noFill();
