@@ -13,9 +13,37 @@ class Bullet {
         this.radius = 3;
         this.col = color(255, 0, 0);
 
-        this.isAlive = true;
-
         this.power = power; // damage power
+
+        this.life = 1;
+        this._isAlive = true;
+
+        /**
+         * @type {function} called on bullet update
+         */
+        this.onUpdate = () => { }; // do nothing by default
+
+        /**
+         * @type {function} called on bullet death
+         */
+        this.onDeath = () => { }; // do nothing by default
+    }
+
+    /**
+     * @returns {boolean} get only. true if bullet is in "alive" state.
+     */
+    get isAlive() { return this._isAlive; }
+
+    /**
+     * subtract from this bullet's "life" or "durability".
+     * @param {number} amount amount of damage to apply.
+     */
+    applyDamage(amount = 1) {
+        this.life -= amount;
+        if (this.life <= 0) {
+            this.onDeath();
+            this._isAlive = false;
+        }
     }
 
     /**
@@ -31,8 +59,10 @@ class Bullet {
             this.pos.x > cam.center.x + width / 2 ||
             this.pos.y < cam.center.y - height / 2 ||
             this.pos.y > cam.center.y + height / 2) {
-            this.isAlive = false;
+            this._isAlive = false;
         }
+
+        this.onUpdate();
     }
 
     /**
@@ -157,6 +187,64 @@ let arsenal = [
                 bullets.push(b);
             }
             return bullets;
+        }
+    ),
+
+    new Weapon(
+        "Space Grenade", 60, (p, d) => {
+            let b = new Bullet(p.copy(), d, 0);
+            b.col = color(70);
+            b.vel.mult(0.5); // half normal speed
+            b.onDeath = () => {
+                // console.log("onDeath");
+                let blast = new Bullet(b.pos, 0, 1);
+                blast.vel.mult(0); // don't move.
+                blast.life = 1000;
+                // add necessary properties for behavior
+                blast.col2 = color(255, 255, 0); // yellow
+                blast.timeLeft = 60 * 2; // 2 "sec"
+                blast.maxRadius = random(100, 150);
+                blast.onUpdate = () => {
+                    // console.log("blast onUpdate");
+                    if (blast.radius < blast.maxRadius) { blast.radius += 1; }
+                    blast.timeLeft--;
+                    if (blast.timeLeft <= 0) { blast.applyDamage(blast.life); }
+                    [blast.col, blast.col2] = [blast.col2, blast.col];
+                };
+                // TODO: FIX HACK
+                ship.bullets.push(blast);
+            };
+
+            return [b];
+        }
+    ),
+
+    new Weapon(
+        "Death Blossom", 60, (p, d) => {
+            let b = new Bullet(p.copy(), d);
+            b.vel.mult(2);
+            b.radius *= 0.5;
+            b.col = color(0, 200, 50);
+            b.onDeath = () => {
+                for (let i = 0; i < 16; i++) {
+                    let b2 = new Bullet(b.pos.copy(), i * TWO_PI / 16);
+                    b2.pos.add(b2.vel);
+                    b2.vel.mult(0.75);
+                    b2.col = color(255, 255, 0);
+                    ship.bullets.push(b2); // TODO: FIX HACK
+                    b2.onDeath = () => {
+                        for (let i = 0; i < 16; i++) {
+                            let b3 = new Bullet(b2.pos.copy(), i * TWO_PI / 16);
+                            b3.vel.mult(1.2);
+                            b3.pos.add(b3.vel);
+                            b3.radius *= 2;
+                            b3.col = color(200, 0, 200);
+                            ship.bullets.push(b3); // TODO: FIX HACK
+                        }
+                    };
+                }
+            };
+            return [b];
         }
     )
 ];

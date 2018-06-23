@@ -70,6 +70,7 @@ function showIntro() {
 
     intro.hidden = false;
     initialize();
+    ship.isGod = true; // hackish
 }
 
 function initialize(restart = false) {
@@ -150,18 +151,19 @@ function draw() {
     // first on asteroid-bullets
     let frags = [];
     let maxCollisionTests = 0;
+    const bborder = 64;
     for (const b of ship.bullets) {
         // bullet-asteroid collision
         let found = tree.query(new Rect(
-            b.pos.x - 64, b.pos.y - 64,
-            b.pos.x + 64, b.pos.y + 64));
+            b.pos.x - (b.radius + bborder), b.pos.y - (b.radius + bborder),
+            b.pos.x + (b.radius + bborder), b.pos.y + (b.radius + bborder)));
         maxCollisionTests += found.length;
         for (const p of found) {
             let a = p.data; // retrieve asteroid
             if (a.isAlive && b.isAlive && AABB(b, a) && CircleCircle(b, a)) {
                 let f = a.applyDamage(b.power);
                 frags.push(...f);
-                b.isAlive = false;
+                b.applyDamage();
             }
         }
     }
@@ -203,10 +205,10 @@ function draw() {
     cam.translate(ship);
 
     // background grid
-    const size = 500;
+    const size = 1000;
     let grid = createVector(size * floor(cam.center.x / size), size * floor(cam.center.y / size));
     let linecount = createVector(ceil(width / size / 2), ceil(height / size / 2));
-    stroke(50);
+    stroke(30);
     for (let x = grid.x - size * linecount.x; x <= grid.x + size * linecount.x; x += size) {
         line(x, ship.pos.y + height, x, ship.pos.y - height);
     }
