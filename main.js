@@ -12,6 +12,7 @@ let asteroids = [];
  */
 let spawnCounter = 0;
 const spawnAfter = 180; // frames
+const maxAsteroidSize = 128;
 
 /**
  * @type {Camera}
@@ -124,7 +125,7 @@ function initialize(restart = false) {
     ship = new Ship();
     if (restart) { ship.isGod = true; }
     cam = new Camera(200);
-    asteroids = Asteroid.Generate(1);
+    asteroids = Asteroid.Generate(1, maxAsteroidSize);
 }
 
 function draw() {
@@ -151,12 +152,11 @@ function draw() {
     // first on asteroid-bullets
     let frags = [];
     let maxCollisionTests = 0;
-    const bborder = 64;
     for (const b of ship.bullets) {
         // bullet-asteroid collision
         let found = tree.query(new Rect(
-            b.pos.x - (b.radius + bborder), b.pos.y - (b.radius + bborder),
-            b.pos.x + (b.radius + bborder), b.pos.y + (b.radius + bborder)));
+            b.pos.x - (b.radius + maxAsteroidSize), b.pos.y - (b.radius + maxAsteroidSize),
+            b.pos.x + (b.radius + maxAsteroidSize), b.pos.y + (b.radius + maxAsteroidSize)));
         maxCollisionTests += found.length;
         for (const p of found) {
             let a = p.data; // retrieve asteroid
@@ -191,7 +191,7 @@ function draw() {
     // spawn new large asteroids
     spawnCounter++;
     if (spawnCounter >= spawnAfter) {
-        asteroids.push(...Asteroid.Generate(1));
+        asteroids.push(...Asteroid.Generate(1,maxAsteroidSize));
         spawnCounter = 0;
     }
 
