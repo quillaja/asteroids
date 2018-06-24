@@ -151,6 +151,13 @@ class Arsenal {
     static get length() { return 8; }
 
     /**
+     * @returns a random integer in [1, Arsenal.length-1]
+     */
+    static RandomIndex() {
+        return ceil(random(Arsenal.length - 1));
+    }
+
+    /**
      * Gets a copy of a weapon instance.
      * @param {number} index 
      * @returns {Weapon} a fresh copy of the weapon at index

@@ -66,9 +66,11 @@ class Ship {
         let i = this.weapons.findIndex(w => w.name == newWeapon.name);
         if (i >= 0) {
             this.weapons[i] = newWeapon;
+            HUD.LongDisplay("Refilled " + newWeapon.name);
             return i;
         } else {
             this.weapons.push(newWeapon);
+            HUD.LongDisplay("Got " + newWeapon.name);
             return this.weapons.length - 1;
         }
     }
@@ -95,10 +97,10 @@ class Ship {
      */
     update() {
         // refill shields every 100 points
-        if (this.score - this.prevScore >= Ship.SHIELD_REFILL_SCORE) {
-            this.shields = Ship.FULL_SHIELD;
-            this.prevScore = this.score;
-        }
+        // if (this.score - this.prevScore >= Ship.SHIELD_REFILL_SCORE) {
+        //     this.shields = Ship.FULL_SHIELD;
+        //     this.prevScore = this.score;
+        // }
 
         // alter reload
         this.weapons[this.weaponIndex].reduceReload();
@@ -137,6 +139,7 @@ class Ship {
                     this.weaponIndex = 0;
                 }
                 this.weaponSwitchWait = Ship.WEAPON_SWITCH_TIME;
+                sounds.weaponSelect.play();
             }
             if (keyIsDown(90)) { // Z
                 this.weaponIndex--;
@@ -144,6 +147,7 @@ class Ship {
                     this.weaponIndex = this.weapons.length - 1;
                 }
                 this.weaponSwitchWait = Ship.WEAPON_SWITCH_TIME;
+                sounds.weaponSelect.play();
             }
         }
 
@@ -176,7 +180,7 @@ class Ship {
         translate(this.pos);
         rotate(this.dir);
         triangle(16, 0, -6, 5, -6, -5); // ship body
-        fill(60);
+        fill(70);
         triangle(12, 0, -0, 3, 0, -3); // cockpit
 
         // ship thrusters
@@ -197,31 +201,58 @@ class Ship {
         // ellipse(0, 0, this.radius * 2);
 
         pop();
+    }
+}
 
-        // HUD display
-        // untranslate back to screen coords.
+class HUD {
+
+    constructor() {
+        HUD.longDisplay = "";
+        HUD.longDisplayTimer = 0;
+    }
+
+    /**
+     * 
+     * @param {string} text text to display
+     */
+    static LongDisplay(text) {
+        HUD.longDisplay = text;
+        HUD.longDisplayTimer = 60 * 4; // 4 "seconds"
+    }
+
+    static draw() {
         push();
+        // untranslate to "normal" screen coords
         translate(cam.center.x - width / 2, cam.center.y - height / 2);
 
         fill(255, 0, 0);
-        rect(5, 5, this.shields, 20); // shield fill
-        rect(5, 28, 100 * this.weapons[this.weaponIndex].ammoRemaining(), 20); // ammo fill
+        rect(5, 5, 200 * ship.shields / Ship.FULL_SHIELD, 20); // shield fill
+        rect(5, 28, 200 * ship.weapons[ship.weaponIndex].ammoRemaining(), 20); // ammo fill
         noFill();
         stroke(255);
-        rect(5, 5, 100, 20); // shield outline
-        rect(5, 28, 100, 20); // ammo outline
+        rect(5, 5, 200, 20); // shield outline
+        rect(5, 28, 200, 20); // ammo outline
 
-        // textFont('monospace');
         textAlign(LEFT, TOP);
         textSize(14);
         fill(255);
         text("Shield", 7, 9);
-        text(this.weapons[this.weaponIndex].name, 7, 30);
-        text(`Score: ${this.score}`, 7, 50);
+        text(ship.weapons[ship.weaponIndex].name, 7, 31);
+        text(`Score: ${ship.score}`, 7, 52);
 
-        text(`Loc: ${this.pos.x.toFixed(0)}, ${this.pos.y.toFixed(0)}`, 7, 70);
-        text(`FPS: ${frameRate().toFixed(0)}`, 7, 90);
+        text(`Loc: ${ship.pos.x.toFixed(0)}, ${ship.pos.y.toFixed(0)}`, 7, 72);
+        text(`FPS: ${frameRate().toFixed(0)}`, 7, 92);
+
+        // lower temporary display
+        if (HUD.longDisplayTimer > 0) {
+            textAlign(CENTER, TOP);
+            textSize(24);
+            fill(random(200, 256));
+            text(HUD.longDisplay, width / 2, height - 30);
+            HUD.longDisplayTimer--;
+        }
+
         pop();
-
     }
+
 }

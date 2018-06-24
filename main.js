@@ -15,6 +15,11 @@ const spawnAfter = 180; // frames
 const maxAsteroidSize = 128;
 
 /**
+ * @type {PowerUp[]}
+ */
+let powerUps = [];
+
+/**
  * @type {Camera}
  */
 let cam;
@@ -31,7 +36,17 @@ let sounds = {
     /**
      * @type {p5.SoundFile}
      */
-    laser: null
+    laser: null,
+
+    /**
+     * @type {p5.SoundFile}
+     */
+    weaponSelect: null,
+
+    /**
+     * @type {p5.SoundFile}
+     */
+    powerUpGet: null,
 }
 
 function preload() {
@@ -44,6 +59,12 @@ function preload() {
         loadSound("sound/laser_short.mp3",
             (s) => { sounds.laser = s; sounds.laser.setVolume(0.5); },
             (e) => console.log("laser: " + e));
+        loadSound("sound/change_weapon.mp3",
+            (s) => { sounds.weaponSelect = s; sounds.weaponSelect.setVolume(0.5); },
+            (e) => console.log("weaponSelect: " + e));
+        loadSound("sound/get_powerup.mp3",
+            (s) => { sounds.powerUpGet = s; sounds.powerUpGet.setVolume(0.5); },
+            (e) => console.log("powerUpGet: " + e));
     } catch (err) {
         console.log("sound loading: " + err);
     }
@@ -59,6 +80,11 @@ function setup() {
     loadFont("PressStart2P.ttf",
         (f) => textFont(f),
         (e) => { textFont("monospace"); console.log("error with 'Press Start 2P': " + e); });
+}
+
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight - 10);
+    cam.adjustParamsToNewWindow();
 }
 
 function showIntro() {
@@ -126,6 +152,7 @@ function initialize(restart = false) {
     if (restart) { ship.isGod = true; }
     cam = new Camera(200);
     asteroids = Asteroid.Generate(1, maxAsteroidSize);
+    powerUps = [];
 }
 
 function draw() {
@@ -133,8 +160,9 @@ function draw() {
 
     // update positions
     ship.update();
-    ship.bullets.forEach((b) => b.update());
-    asteroids.forEach((a) => a.update());
+    ship.bullets.forEach(b => b.update());
+    asteroids.forEach(a => a.update());
+    powerUps.forEach(p => p.update());
 
     // build quadtree
     const treeMargin = 0;
@@ -180,10 +208,18 @@ function draw() {
         }
     }
 
+    // ship-powerup collision
+    for (const up of powerUps) {
+        if (AABB(up, ship) && CircleCircle(up, ship)) {
+            up.applyEffect(ship);
+        }
+    }
+
     // remove dead
-    ship.bullets = ship.bullets.filter((b) => b.isAlive);
+    ship.bullets = ship.bullets.filter(b => b.isAlive);
+    powerUps = powerUps.filter(p => p.isAlive);
     let prevLen = asteroids.length;
-    asteroids = asteroids.filter((a) => a.isAlive);
+    asteroids = asteroids.filter(a => a.isAlive);
     ship.score += prevLen - asteroids.length;
     // add new
     asteroids.push(...frags);
@@ -191,7 +227,7 @@ function draw() {
     // spawn new large asteroids
     spawnCounter++;
     if (spawnCounter >= spawnAfter) {
-        asteroids.push(...Asteroid.Generate(1,maxAsteroidSize));
+        asteroids.push(...Asteroid.Generate(1, maxAsteroidSize));
         spawnCounter = 0;
     }
 
@@ -217,10 +253,16 @@ function draw() {
     }
     // console.log(linecount);
 
-    ship.bullets.forEach((b) => b.draw());
+    powerUps.forEach(p => p.draw());
+    ship.bullets.forEach(b => b.draw());
     // asteroids.forEach((a) => a.draw());
-    tree.query(tree.range).forEach(p => p.data.draw()); // draws only asteroids on visible screen
+    tree.query(
+        new Rect(
+            tree.range.x1 - maxAsteroidSize, tree.range.y1 - maxAsteroidSize,
+            tree.range.x2 + maxAsteroidSize, tree.range.y2 + maxAsteroidSize))
+        .forEach(p => p.data.draw()); // draws only asteroids on visible screen
     ship.draw();
+    HUD.draw();
 
     // show stats if fps drops too low
     if (frameRate() < 40) {
@@ -230,8 +272,8 @@ function draw() {
 
 /**
  * Performs Axis Aligned Bounding Box test on 2 objects.
- * @param {Ship|Asteroid|Bullet} a an object
- * @param {Ship|Asteroid|Bullet} b another object
+ * @param {Ship|Asteroid|Bullet|PowerUp} a an object
+ * @param {Ship|Asteroid|Bullet|PowerUp} b another object
  * @returns {boolean} true if the AABBs collide
  */
 function AABB(a, b) {
@@ -245,8 +287,8 @@ function AABB(a, b) {
 
 /**
  * Performed a circle-circle collision test.
- * @param {Ship|Asteroid|Bullet} a an object
- * @param {Ship|Asteroid|Bullet} b another object
+ * @param {Ship|Asteroid|Bullet|PowerUp} a an object
+ * @param {Ship|Asteroid|Bullet|PowerUp} b another object
  * @returns {boolean} true if the circles collide
  */
 function CircleCircle(a, b) {
@@ -260,6 +302,11 @@ class Camera {
         this.center = createVector(0, 0);
         this.halfWidth = (width - 2 * edgeBufferWidth) / 2;
         this.halfHeight = (height - 2 * edgeBufferWidth) / 2;
+    }
+
+    adjustParamsToNewWindow(){
+        this.halfWidth = (width - 2 * this.bufferWidth) / 2;
+        this.halfHeight = (height - 2 * this.bufferWidth) / 2;
     }
 
     /**

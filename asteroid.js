@@ -69,6 +69,8 @@ class Asteroid {
                     f.col = this.col;
                     frags.push(f);
                 }
+            } else { // size 8 (and under) can have a chance to spawn a powerup
+                PowerUp.Roll(this.pos.copy());
             }
         }
         return frags;
