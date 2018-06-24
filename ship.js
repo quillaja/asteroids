@@ -1,3 +1,12 @@
+
+/** for testing only! =) */
+function godMode() {
+    ship.isGod = true;
+    for (let i = 1; i < Arsenal.length; i++) {
+        ship.giveWeapon(i);
+    }
+}
+
 class Ship {
     static get MAX_SPEED() { return 3; } // pixels/frame
     static get SPEED() { return 0.1; } //pixels/frame
@@ -18,10 +27,15 @@ class Ship {
 
         this.col = color(255);
 
-        this.isAlive = true;
-        this.shields = 100;
         this.score = 0;
-        this.prevScore = 0;
+
+        this.isAlive = true;
+        this.maxShields = Ship.FULL_SHIELD;
+        this.shields = this.maxShields;
+
+        this.maxSpeed = Ship.MAX_SPEED;
+        this.turnSpeed = Ship.TURN_SPEED;
+
         this.invulnerable = 0;
         this.invulnerableColor = color(255, 255, 0);
         this.isGod = false;
@@ -76,6 +90,22 @@ class Ship {
     }
 
     /**
+     * @returns {number} percent [0,1] of shield remaining.
+     */
+    shieldsRemaining() {
+        return this.shields / this.maxShields;
+    }
+
+    /**
+     * sets shield
+     * @param {number} percent percent [0,1] of ship's max shield to refill
+     */
+    refillShield(percent) {
+        this.shields = percent * this.maxShields;
+        HUD.LongDisplay(`Shield at ${(100 * this.shieldsRemaining()).toFixed(0)}%`);
+    }
+
+    /**
      * Reduces ship's shield (life). Controls alive/dead state, as well as 
      * sets temporary invulnerability after being hit.
      * @param {number} dmg the amount of damage
@@ -92,15 +122,9 @@ class Ship {
 
     /**
      * Updates the ship's position, wraps screen. Reads keyboard for controls. 
-     * Updates gun reload and invulnerabilty counters. Refills shield every 
-     * 100 points scored.
+     * Updates gun reload and invulnerabilty counters.
      */
     update() {
-        // refill shields every 100 points
-        // if (this.score - this.prevScore >= Ship.SHIELD_REFILL_SCORE) {
-        //     this.shields = Ship.FULL_SHIELD;
-        //     this.prevScore = this.score;
-        // }
 
         // alter reload
         this.weapons[this.weaponIndex].reduceReload();
@@ -120,10 +144,10 @@ class Ship {
         //     f -= Ship.SPEED;
         // }
         if (keyIsDown(LEFT_ARROW)) {
-            r -= Ship.TURN_SPEED;
+            r -= this.turnSpeed;
         }
         if (keyIsDown(RIGHT_ARROW)) {
-            r += Ship.TURN_SPEED;
+            r += this.turnSpeed;
         }
         if (keyIsDown(32)) { // SPACE
             // if 'reload' time, ammo, etc ok, fire bullet. else nothing.
@@ -154,7 +178,7 @@ class Ship {
         // apply changes to ship (force, rotation), limit vel
         this.dir += r; // change ship direction
         this.vel.add(p5.Vector.fromAngle(this.dir, f));
-        this.vel.limit(Ship.MAX_SPEED);
+        this.vel.limit(this.maxSpeed);
         this.vel.mult(0.995); //tiny bit of dampening
         // move ship
         this.pos.add(this.vel);
@@ -180,14 +204,14 @@ class Ship {
         translate(this.pos);
         rotate(this.dir);
         triangle(16, 0, -6, 5, -6, -5); // ship body
-        fill(70);
+        fill(80);
         triangle(12, 0, -0, 3, 0, -3); // cockpit
 
         // ship thrusters
         stroke(color(192, 64, 0));
         strokeWeight(2);
         let jetlen = 0;
-        if (keyIsDown(UP_ARROW)) { jetlen = 2; }
+        if (keyIsDown(UP_ARROW)) { jetlen = 2; strokeWeight(3); }
         if (keyIsDown(LEFT_ARROW) || jetlen > 0) {
             line(-6, 3, -10 - jetlen, 3); // thruster on "right" side
         }
@@ -247,7 +271,7 @@ class HUD {
         if (HUD.longDisplayTimer > 0) {
             textAlign(CENTER, TOP);
             textSize(24);
-            fill(random(200, 256));
+            fill(random(160, 256));
             text(HUD.longDisplay, width / 2, height - 30);
             HUD.longDisplayTimer--;
         }

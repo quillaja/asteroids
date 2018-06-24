@@ -101,24 +101,44 @@ class PowerUp {
      */
     static Roll(pos) {
         if (random() <= 0.25) { // 25% chance to get a powerup at all
-            if (random() <= 0.5) { // 50% to get shield refill
+            let itemRoll = random();
+            switch (true) {
+                // the probabilities below MUST add to 1 (100%) to be valid
 
-                powerUps.push(new PowerUp(pos, "S", "Shield refill", color(255, 0, 0),
-                    s => {
-                        s.shields = Ship.FULL_SHIELD; // TODO: improve
-                        HUD.LongDisplay("Full Shield");
-                    }));
+                case itemRoll <= 0.4: // 40% to get shield refill
+                    powerUps.push(new PowerUp(pos, "S", "Shield refill", color(255, 0, 0),
+                        s => {
+                            s.refillShield(1);
+                        }));
+                    return;
 
-            } else { // 50% chance to get weapon
+                case itemRoll <= 0.8: // 40% chance to get weapon
+                    powerUps.push(new PowerUp(pos, "W", "Weapon", color(0, 255, 0),
+                        s => {
+                            s.giveWeapon(Arsenal.RandomIndex());
+                        }));
+                    return;
 
-                powerUps.push(new PowerUp(pos, "W", "Weapon", color(0, 255, 0),
-                    s => {
-                        s.giveWeapon(Arsenal.RandomIndex());
-                    }));
+                case itemRoll < 0.9: // 10% chance to get faster turn speed
+                    powerUps.push(new PowerUp(pos, "M", "Turn Speed", color(0, 0, 255),
+                        s => {
+                            s.turnSpeed *= 1.05;
+                            HUD.LongDisplay("5% faster turn speed");
+                        }));
+                    return;
+
+                case itemRoll <= 1: // 10% chance to get thruster upgrade
+                    powerUps.push(new PowerUp(pos, "T", "Thruster", color(0, 0, 255),
+                        s => {
+                            s.maxSpeed *= 1.05;
+                            HUD.LongDisplay("5% faster top speed");
+                        }));
+
+                default:
+                    return;
             }
         }
 
-        // return null;
     }
 
 }
