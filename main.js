@@ -11,7 +11,7 @@ let asteroids = [];
  * @type {number}
  */
 let spawnCounter = 0;
-const spawnAfter = 180; // frames
+let spawnAfter = 60 * 3; // frames (3 "sec")
 const maxAsteroidSize = 128;
 
 /**
@@ -122,6 +122,7 @@ function showIntro() {
     intro.hidden = false;
     initialize();
     ship.isGod = true; // hackish
+    spawnAfter = Infinity; // also a hack
 }
 
 function initialize(restart = false) {
@@ -172,8 +173,9 @@ function initialize(restart = false) {
     }
 
     spawnCounter = 0;
+    spawnAfter = 60 * 3;
     ship = new Ship();
-    if (restart) { ship.isGod = true; }
+    if (restart) { ship.isGod = true; spawnAfter = Infinity; }
     cam = new Camera(250);
     asteroids = Asteroid.Generate(1, maxAsteroidSize);
     powerUps = [];

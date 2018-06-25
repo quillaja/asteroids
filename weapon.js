@@ -176,7 +176,7 @@ class Arsenal {
         switch (index) {
             case 0:
                 return new Weapon(
-                    "Blaster", 12, Number.POSITIVE_INFINITY, (p, d) => {
+                    "Blaster", 12, Infinity, (p, d) => {
                         return [new Bullet(p.copy(), d)];
                     }
                 );
