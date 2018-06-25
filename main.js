@@ -46,6 +46,11 @@ let sounds = {
     /**
      * @type {p5.SoundFile}
      */
+    selectError: null,
+
+    /**
+     * @type {p5.SoundFile}
+     */
     powerUpGet: null,
 }
 
@@ -62,6 +67,9 @@ function preload() {
         loadSound("sound/change_weapon.mp3",
             (s) => { sounds.weaponSelect = s; sounds.weaponSelect.setVolume(0.5); },
             (e) => console.log("weaponSelect: " + e));
+        loadSound("sound/error.mp3",
+            (s) => { sounds.selectError = s; sounds.selectError.setVolume(0.5); },
+            (e) => console.log("selectError: " + e));
         loadSound("sound/get_powerup.mp3",
             (s) => { sounds.powerUpGet = s; sounds.powerUpGet.setVolume(0.5); },
             (e) => console.log("powerUpGet: " + e));
@@ -265,7 +273,7 @@ function draw() {
     HUD.draw();
 
     // show stats if fps drops too low
-    if (frameRate() < 40) {
+    if (frameRate() <= 30) {
         console.log(`${ceil(frameRate())}fps ${asteroids.length} asteroids ${maxCollisionTests} max col.`);
     }
 }
@@ -304,7 +312,7 @@ class Camera {
         this.halfHeight = (height - 2 * edgeBufferWidth) / 2;
     }
 
-    adjustParamsToNewWindow(){
+    adjustParamsToNewWindow() {
         this.halfWidth = (width - 2 * this.bufferWidth) / 2;
         this.halfHeight = (height - 2 * this.bufferWidth) / 2;
     }

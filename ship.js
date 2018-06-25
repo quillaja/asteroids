@@ -151,9 +151,14 @@ class Ship {
         }
         if (keyIsDown(32)) { // SPACE
             // if 'reload' time, ammo, etc ok, fire bullet. else nothing.
-            if (this.weapons[this.weaponIndex].canFire) {
+            let w = this.weapons[this.weaponIndex];
+            if (w.canFire) {
                 // fire
-                this.bullets.push(...this.weapons[this.weaponIndex].fire(this));
+                this.bullets.push(...w.fire(this));
+                sounds.laser.play();
+            } else if (!w.hasAmmo && w.reloadOk) {
+                w.reloadRemaining = w.reloadTime; // TODO: HACK. this section works, but needs streamlined
+                sounds.selectError.play();
             }
         }
         if (this.canSwitchWeapon) {

@@ -33,7 +33,10 @@ class Asteroid {
          * @type {p5.Vector[]}
          */
         this.verts = [];
-        let n = 12;//floor(random(this.radius * 0.3, this.radius));
+        let n = 10;
+        if (this.radius <= 64) {
+            n = 8;
+        }
         if (this.radius <= 16) {
             n = 6; // lower detail for smaller ones
         }

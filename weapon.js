@@ -118,9 +118,19 @@ class Weapon {
     reduceReload(num = 1) { this.reloadRemaining -= num; }
 
     /**
-     * @returns true if the weapon can fire
+     * @returns {boolean} true if the weapon can fire
      */
     get canFire() { return this.reloadRemaining <= 0 && this.ammo > 0; }
+
+    /**
+     * @returns {boolean} ammo is not depleted
+     */
+    get hasAmmo() { return this.ammo >0; }
+
+    /**
+     * @returns {boolean} weapon finished reloading
+     */
+    get reloadOk() { return this.reloadRemaining <=0; }
 
     /**
      * @returns {number} percent ammo left as [0,1]
@@ -138,7 +148,6 @@ class Weapon {
     fire(ship) {
         this.reloadRemaining = this.reloadTime;
         this.ammo--;
-        sounds.laser.play();
         return this.generate(ship.pos, ship.dir);
     }
 }
@@ -239,9 +248,9 @@ class Arsenal {
                             // add necessary properties for behavior
                             blast.col2 = color(255, 255, 0); // yellow
                             blast.timeLeft = 60 * 2; // 2 "sec"
-                            blast.maxRadius = random(90, 120);
+                            blast.maxRadius = random(135, 180);
                             blast.onUpdate = () => {
-                                if (blast.radius < blast.maxRadius) { blast.radius += 1; }
+                                if (blast.radius < blast.maxRadius) { blast.radius += 1.5; }
                                 blast.timeLeft--;
                                 if (blast.timeLeft <= 0) { blast.applyDamage(blast.life); }
                                 [blast.col, blast.col2] = [blast.col2, blast.col];

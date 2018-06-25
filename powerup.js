@@ -105,30 +105,30 @@ class PowerUp {
             switch (true) {
                 // the probabilities below MUST add to 1 (100%) to be valid
 
-                case itemRoll <= 0.4: // 40% to get shield refill
+                case itemRoll <= 0.45: // 45% to get shield refill
                     powerUps.push(new PowerUp(pos, "S", "Shield refill", color(255, 0, 0),
                         s => {
                             s.refillShield(1);
                         }));
                     return;
 
-                case itemRoll <= 0.8: // 40% chance to get weapon
+                case itemRoll <= 0.90: // 45% chance to get weapon
                     powerUps.push(new PowerUp(pos, "W", "Weapon", color(0, 255, 0),
                         s => {
                             s.giveWeapon(Arsenal.RandomIndex());
                         }));
                     return;
 
-                case itemRoll < 0.9: // 10% chance to get faster turn speed
-                    powerUps.push(new PowerUp(pos, "M", "Turn Speed", color(0, 0, 255),
+                case itemRoll <= 0.95: // 5% chance to get faster turn speed
+                    powerUps.push(new PowerUp(pos, "Ts", "Turn Speed", color(0, 0, 255),
                         s => {
                             s.turnSpeed *= 1.05;
                             HUD.LongDisplay("5% faster turn speed");
                         }));
                     return;
 
-                case itemRoll <= 1: // 10% chance to get thruster upgrade
-                    powerUps.push(new PowerUp(pos, "T", "Thruster", color(0, 0, 255),
+                case itemRoll <= 1: // 5% chance to get thruster upgrade
+                    powerUps.push(new PowerUp(pos, "Th", "Thruster", color(0, 0, 255),
                         s => {
                             s.maxSpeed *= 1.05;
                             HUD.LongDisplay("5% faster top speed");
