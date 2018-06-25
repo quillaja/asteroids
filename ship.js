@@ -23,7 +23,7 @@ class Ship {
         this.pos = createVector(0, 0);
         this.vel = createVector(0, 0);
         this.dir = 0;
-        this.radius = 10;
+        this.radius = 6;
 
         this.col = color(255);
 
@@ -216,7 +216,7 @@ class Ship {
         stroke(color(192, 64, 0));
         strokeWeight(2);
         let jetlen = 0;
-        if (keyIsDown(UP_ARROW)) { jetlen = 2; strokeWeight(3); }
+        if (keyIsDown(UP_ARROW)) { jetlen = 3; strokeWeight(3); }
         if (keyIsDown(LEFT_ARROW) || jetlen > 0) {
             line(-6, 3, -10 - jetlen, 3); // thruster on "right" side
         }
@@ -270,7 +270,9 @@ class HUD {
         text(`Score: ${ship.score}`, 7, 52);
 
         text(`Loc: ${ship.pos.x.toFixed(0)}, ${ship.pos.y.toFixed(0)}`, 7, 72);
-        text(`FPS: ${frameRate().toFixed(0)}`, 7, 92);
+        let fps = frameRate().toFixed(0);
+        if (fps <= 30) { fill('red'); }
+        text(`FPS: ${fps}`, 7, 92);
 
         // lower temporary display
         if (HUD.longDisplayTimer > 0) {

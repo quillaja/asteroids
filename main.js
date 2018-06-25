@@ -20,6 +20,12 @@ const maxAsteroidSize = 128;
 let powerUps = [];
 
 /**
+ * @type {QuadTree}
+ */
+let stars = null;
+const startCount = 5000;
+
+/**
  * @type {Camera}
  */
 let cam;
@@ -88,6 +94,16 @@ function setup() {
     loadFont("PressStart2P.ttf",
         (f) => textFont(f),
         (e) => { textFont("monospace"); console.log("error with 'Press Start 2P': " + e); });
+
+    // make starfield for background
+    stars = new QuadTree(
+        new Rect(-worldHalfWidth, -worldHalfHeight, worldHalfWidth, worldHalfHeight),
+        1, true);
+    for (let i = 0; i < startCount; i++) {
+        stars.insert(new Point(
+            random(-worldHalfWidth, worldHalfWidth),
+            random(-worldHalfHeight, worldHalfHeight)));
+    }
 }
 
 function windowResized() {
@@ -158,7 +174,7 @@ function initialize(restart = false) {
     spawnCounter = 0;
     ship = new Ship();
     if (restart) { ship.isGod = true; }
-    cam = new Camera(200);
+    cam = new Camera(250);
     asteroids = Asteroid.Generate(1, maxAsteroidSize);
     powerUps = [];
 }
@@ -173,6 +189,7 @@ function draw() {
     powerUps.forEach(p => p.update());
 
     // build quadtree
+    // root has region covering the visible screen
     const treeMargin = 0;
     let tree = new QuadTree(new Rect(
         cam.center.x - width / 2 - treeMargin, cam.center.y - height / 2 - treeMargin,
@@ -187,16 +204,18 @@ function draw() {
     // perform collisions
     // first on asteroid-bullets
     let frags = [];
+    let margin = 0;
     let maxCollisionTests = 0;
     for (const b of ship.bullets) {
         // bullet-asteroid collision
+        margin = b.radius + maxAsteroidSize;
         let found = tree.query(new Rect(
-            b.pos.x - (b.radius + maxAsteroidSize), b.pos.y - (b.radius + maxAsteroidSize),
-            b.pos.x + (b.radius + maxAsteroidSize), b.pos.y + (b.radius + maxAsteroidSize)));
+            b.pos.x - margin, b.pos.y - margin,
+            b.pos.x + margin, b.pos.y + margin));
         maxCollisionTests += found.length;
         for (const p of found) {
             let a = p.data; // retrieve asteroid
-            if (a.isAlive && b.isAlive && AABB(b, a) && CircleCircle(b, a)) {
+            if (a.isAlive && b.isAlive /*&& AABB(b, a)*/ && CircleCircle(b, a)) {
                 let f = a.applyDamage(b.power);
                 frags.push(...f);
                 b.applyDamage();
@@ -205,20 +224,21 @@ function draw() {
     }
 
     // ship-asteroid collision
+    margin = ship.radius + maxAsteroidSize;
     let found = tree.query(new Rect(
-        ship.pos.x - 64, ship.pos.y - 64,
-        ship.pos.x + 64, ship.pos.y + 64));
+        ship.pos.x - margin, ship.pos.y - margin,
+        ship.pos.x + margin, ship.pos.y + margin));
     maxCollisionTests += found.length;
     for (const p of found) {
         let a = p.data;
-        if (AABB(ship, a) && CircleCircle(ship, a)) {
+        if (/*AABB(ship, a) &&*/ CircleCircle(ship, a)) {
             ship.applyDamage(a.radius);
         }
     }
 
     // ship-powerup collision
     for (const up of powerUps) {
-        if (AABB(up, ship) && CircleCircle(up, ship)) {
+        if (/*AABB(up, ship) &&*/ CircleCircle(up, ship)) {
             up.applyEffect(ship);
         }
     }
@@ -226,9 +246,11 @@ function draw() {
     // remove dead
     ship.bullets = ship.bullets.filter(b => b.isAlive);
     powerUps = powerUps.filter(p => p.isAlive);
+
     let prevLen = asteroids.length;
     asteroids = asteroids.filter(a => a.isAlive);
     ship.score += prevLen - asteroids.length;
+
     // add new
     asteroids.push(...frags);
 
@@ -246,20 +268,26 @@ function draw() {
 
     // draw /////////////////////
 
-    cam.translate(ship);
+    cam.translate(ship.pos);
 
     // background grid
-    const size = 1000;
-    let grid = createVector(size * floor(cam.center.x / size), size * floor(cam.center.y / size));
-    let linecount = createVector(ceil(width / size / 2), ceil(height / size / 2));
-    stroke(30);
-    for (let x = grid.x - size * linecount.x; x <= grid.x + size * linecount.x; x += size) {
-        line(x, ship.pos.y + height, x, ship.pos.y - height);
+    // const size = 1000;
+    // let grid = createVector(size * floor(cam.center.x / size), size * floor(cam.center.y / size));
+    // let linecount = createVector(ceil(width / size / 2), ceil(height / size / 2));
+    // stroke(30);
+    // for (let x = grid.x - size * linecount.x; x <= grid.x + size * linecount.x; x += size) {
+    //     line(x, ship.pos.y + height, x, ship.pos.y - height);
+    // }
+    // for (let y = grid.y - size * linecount.y; y <= grid.y + size * linecount.y; y += size) {
+    //     line(ship.pos.x + width, y, ship.pos.x - width, y);
+    // }
+
+    // stars
+    stroke(random(128, 255));
+    for (const s of stars.query(tree.range)) {
+        // stroke(random(150, 255));
+        point(s.x, s.y);
     }
-    for (let y = grid.y - size * linecount.y; y <= grid.y + size * linecount.y; y += size) {
-        line(ship.pos.x + width, y, ship.pos.x - width, y);
-    }
-    // console.log(linecount);
 
     powerUps.forEach(p => p.draw());
     ship.bullets.forEach(b => b.draw());
@@ -274,7 +302,7 @@ function draw() {
 
     // show stats if fps drops too low
     if (frameRate() <= 30) {
-        console.log(`${ceil(frameRate())}fps ${asteroids.length} asteroids ${maxCollisionTests} max col.`);
+        console.log(`${minute()}:${second()}-${ceil(frameRate())}fps, ${asteroids.length}a, ${maxCollisionTests}c`);
     }
 }
 
@@ -319,22 +347,22 @@ class Camera {
 
     /**
      * keep camera where it belongs
-     * @param {Ship} ship the ship
+     * @param {p5.Vector} lookAt the location to look at
      */
-    translate(ship) {
+    translate(lookAt) {
         let dx = 0;
         let dy = 0;
 
-        if (ship.pos.x > this.center.x + this.halfWidth) {
-            dx = ship.pos.x - (this.center.x + this.halfWidth);
-        } else if (ship.pos.x < this.center.x - this.halfWidth) {
-            dx = ship.pos.x - (this.center.x - this.halfWidth);
+        if (lookAt.x > this.center.x + this.halfWidth) {
+            dx = lookAt.x - (this.center.x + this.halfWidth);
+        } else if (lookAt.x < this.center.x - this.halfWidth) {
+            dx = lookAt.x - (this.center.x - this.halfWidth);
         }
 
-        if (ship.pos.y > this.center.y + this.halfHeight) {
-            dy = ship.pos.y - (this.center.y + this.halfHeight);
-        } else if (ship.pos.y < this.center.y - this.halfHeight) {
-            dy = ship.pos.y - (this.center.y - this.halfHeight);
+        if (lookAt.y > this.center.y + this.halfHeight) {
+            dy = lookAt.y - (this.center.y + this.halfHeight);
+        } else if (lookAt.y < this.center.y - this.halfHeight) {
+            dy = lookAt.y - (this.center.y - this.halfHeight);
         }
 
         this.center.x += dx;

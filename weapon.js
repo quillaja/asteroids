@@ -125,12 +125,12 @@ class Weapon {
     /**
      * @returns {boolean} ammo is not depleted
      */
-    get hasAmmo() { return this.ammo >0; }
+    get hasAmmo() { return this.ammo > 0; }
 
     /**
      * @returns {boolean} weapon finished reloading
      */
-    get reloadOk() { return this.reloadRemaining <=0; }
+    get reloadOk() { return this.reloadRemaining <= 0; }
 
     /**
      * @returns {number} percent ammo left as [0,1]
@@ -249,11 +249,12 @@ class Arsenal {
                             blast.col2 = color(255, 255, 0); // yellow
                             blast.timeLeft = 60 * 2; // 2 "sec"
                             blast.maxRadius = random(135, 180);
+                            blast.radiusInc = blast.maxRadius / blast.timeLeft;
                             blast.onUpdate = () => {
-                                if (blast.radius < blast.maxRadius) { blast.radius += 1.5; }
+                                blast.radius += blast.radiusInc;
                                 blast.timeLeft--;
-                                if (blast.timeLeft <= 0) { blast.applyDamage(blast.life); }
-                                [blast.col, blast.col2] = [blast.col2, blast.col];
+                                if (blast.timeLeft <= 0) { blast.applyDamage(blast.life); } // kill bullet
+                                [blast.col, blast.col2] = [blast.col2, blast.col]; // swap beteen the 2 colors to produce a 'fire' effect
                                 blast.col.setAlpha(map(blast.timeLeft, 20, 0, 255, 0));//slow fade of explosion
                             };
                             // TODO: FIX HACK

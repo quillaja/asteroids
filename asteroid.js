@@ -43,7 +43,7 @@ class Asteroid {
         for (let i = 0; i < n; i++) {
             let v = p5.Vector.fromAngle(
                 i / n * TWO_PI,
-                this.radius + random(-0.25 * this.radius, 0.25 * this.radius));
+                this.radius + random(-0.1 * this.radius, 0.25 * this.radius));
             this.verts.push(v);
         }
     }
@@ -67,7 +67,7 @@ class Asteroid {
                         this.pos.copy(),
                         this.vel.heading() + random(-HALF_PI, HALF_PI),
                         this.radius / 2
-                        // starting with 64 will produce: 64,32,16,8.
+                        // starting with 128 will produce: 128,64,32,16,8.
                     );
                     f.col = this.col;
                     frags.push(f);
@@ -105,13 +105,6 @@ class Asteroid {
         // translate(this.pos); // can't use with begin/endShape()
         beginShape();
         for (let i = 0; i < this.verts.length; i++) {
-            // line(
-            //     this.verts[i].x, this.verts[i].y,
-            //     this.verts[i + 1].x, this.verts[i + 1].y);
-            // triangle(
-            //     0, 0,
-            //     this.verts[i].x, this.verts[i].y,
-            //     this.verts[i + 1].x, this.verts[i + 1].y);
             vertex(this.verts[i].x + this.pos.x, this.verts[i].y + this.pos.y);
         }
         endShape(CLOSE);
@@ -119,7 +112,7 @@ class Asteroid {
         // display hit circle
         // noFill();
         // stroke(0, 0, 255);
-        // ellipse(0, 0, this.radius * 2);
+        // ellipse(this.pos.x, this.pos.y, this.radius * 2);
 
         pop();
     }
