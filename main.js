@@ -289,16 +289,16 @@ function draw() {
         point(s.x, s.y);
     }
 
+    // draw quadtree for 'debug'
+    // noFill();
+    // stroke(128);
+    // strokeWeight(0.5);
+    // tree.draw();
+
     powerUps.forEach(p => p.draw());
     ship.bullets.forEach(b => b.draw());
     tree.query(tree.range).forEach(p => p.draw()); // draws only asteroids on visible screen
     ship.draw();
-
-    noFill();
-    stroke(128);
-    strokeWeight(0.5);
-    tree.draw();
-
     HUD.draw();
 
     // show stats if fps drops too low

@@ -308,6 +308,9 @@ class RectQuadTree {
      * @returns {IRect[]} a list of found objects
      */
     query(range, found = []) {
+        // TODO: add parameter to this method switch between
+        // test for intersection and test for containment
+
         // 1. check if this node intersects with the query range
         if (!this.range.intersects(range)) {
             return found;
