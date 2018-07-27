@@ -3,6 +3,17 @@
 // last edited: 2018-06-02
 
 /**
+ * @typedef IPoint
+ * @property {number} x
+ * @property {number} y 
+ */
+
+/**
+ * @typedef IRect
+ * @property {Rect} rect
+ */
+
+/**
  * A rectangle defined by its lower (in magnitude) and higher (in magnitude) 
  * corners. Also implements point and rectangle collision.
  */
@@ -105,7 +116,7 @@ class PointQuadTree {
 
     /**
      * Inserts a Point into the tree. Returns true/false if the point was inserted.
-     * @param {any} point any object that has numeric properties 'x' and 'y'
+     * @param {IPoint} point any object that has numeric properties 'x' and 'y'
      */
     insert(point) {
         if (!this.range.containsPoint(point.x, point.y)) {
@@ -176,8 +187,8 @@ class PointQuadTree {
      * the points will be appended to that array. Returns a reference to the 
      * found array.
      * @param {Rect} range rectangular area to search
-     * @param {any[]} found a list of already found items
-     * @returns {any[]} a list of found Points
+     * @param {IPoint[]} found a list of already found items
+     * @returns {IPoint[]} a list of found Points
      */
     query(range, found = []) {
         if (!this.range.intersects(range)) {
@@ -237,7 +248,7 @@ class RectQuadTree {
 
     /**
      * Inserts a Rect into the tree. Returns true/false if the point was inserted.
-     * @param {any} obj any object that has the property 'rect' which gets a Rect
+     * @param {IRect} obj any object that has the property 'rect' which gets a Rect
      */
     insert(obj) {
         // 1. check if this contains the incoming rect
@@ -293,8 +304,8 @@ class RectQuadTree {
      * the objects will be appended to that array. Returns a reference to the 
      * found array.
      * @param {Rect} range rectangular area to search
-     * @param {any[]} found a list of already found items
-     * @returns {any[]} a list of found objects
+     * @param {IRect[]} found a list of already found items
+     * @returns {IRect[]} a list of found objects
      */
     query(range, found = []) {
         // 1. check if this node intersects with the query range
