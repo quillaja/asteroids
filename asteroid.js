@@ -48,6 +48,14 @@ class Asteroid {
         }
     }
 
+    // These properties are for interfacing with the PointQuadTree and RectQuadTree
+    get x() { return this.pos.x; }
+    get y() { return this.pos.y; }
+    get rect() {
+        return new Rect(this.pos.x - this.radius, this.pos.y - this.radius,
+            this.pos.x + this.radius, this.pos.y + this.radius);
+    }
+
     /**
      * Decreases life of the asteroid by dmg, updates alive/dead state,
      * and spawns new asteroids if dead.

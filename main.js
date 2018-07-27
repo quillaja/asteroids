@@ -20,7 +20,7 @@ const maxAsteroidSize = 128;
 let powerUps = [];
 
 /**
- * @type {QuadTree}
+ * @type {PointQuadTree}
  */
 let stars = null;
 const startCount = 5000;
@@ -96,7 +96,7 @@ function setup() {
         (e) => { textFont("monospace"); console.log("error with 'Press Start 2P': " + e); });
 
     // make starfield for background
-    stars = new QuadTree(
+    stars = new PointQuadTree(
         new Rect(-worldHalfWidth, -worldHalfHeight, worldHalfWidth, worldHalfHeight),
         1, true);
     for (let i = 0; i < startCount; i++) {
@@ -192,15 +192,16 @@ function draw() {
 
     // build quadtree
     // root has region covering the visible screen
-    const treeMargin = 0;
-    let tree = new QuadTree(new Rect(
+    const treeMargin = maxAsteroidSize;
+    let tree = new RectQuadTree(new Rect(
         cam.center.x - width / 2 - treeMargin, cam.center.y - height / 2 - treeMargin,
-        cam.center.x + width / 2 + treeMargin, cam.center.y + height / 2 + treeMargin), 5);
+        cam.center.x + width / 2 + treeMargin, cam.center.y + height / 2 + treeMargin));//, 5);
 
     for (const a of asteroids) {
-        let p = new Point(a.pos.x, a.pos.y);
-        p.data = a; // attach asteroid
-        tree.insert(p)
+        // let p = new Point(a.pos.x, a.pos.y);
+        // p.data = a; // attach asteroid
+        // tree.insert(p)
+        tree.insert(a);
     }
 
     // perform collisions
@@ -210,13 +211,13 @@ function draw() {
     let maxCollisionTests = 0;
     for (const b of ship.bullets) {
         // bullet-asteroid collision
-        margin = b.radius + maxAsteroidSize;
+        margin = b.radius;// + maxAsteroidSize;
         let found = tree.query(new Rect(
             b.pos.x - margin, b.pos.y - margin,
             b.pos.x + margin, b.pos.y + margin));
         maxCollisionTests += found.length;
         for (const p of found) {
-            let a = p.data; // retrieve asteroid
+            let a = p;//p.data; // retrieve asteroid
             if (a.isAlive && b.isAlive /*&& AABB(b, a)*/ && CircleCircle(b, a)) {
                 let f = a.applyDamage(b.power);
                 frags.push(...f);
@@ -226,13 +227,13 @@ function draw() {
     }
 
     // ship-asteroid collision
-    margin = ship.radius + maxAsteroidSize;
+    margin = ship.radius;// + maxAsteroidSize;
     let found = tree.query(new Rect(
         ship.pos.x - margin, ship.pos.y - margin,
         ship.pos.x + margin, ship.pos.y + margin));
     maxCollisionTests += found.length;
     for (const p of found) {
-        let a = p.data;
+        let a = p;//p.data;
         if (/*AABB(ship, a) &&*/ CircleCircle(ship, a)) {
             ship.applyDamage(a.radius);
         }
@@ -294,11 +295,11 @@ function draw() {
     powerUps.forEach(p => p.draw());
     ship.bullets.forEach(b => b.draw());
     // asteroids.forEach((a) => a.draw());
-    tree.query(
-        new Rect(
-            tree.range.x1 - maxAsteroidSize, tree.range.y1 - maxAsteroidSize,
-            tree.range.x2 + maxAsteroidSize, tree.range.y2 + maxAsteroidSize))
-        .forEach(p => p.data.draw()); // draws only asteroids on visible screen
+    tree.query(tree.range)
+        // new Rect(
+        //     tree.range.x1 - maxAsteroidSize, tree.range.y1 - maxAsteroidSize,
+        //     tree.range.x2 + maxAsteroidSize, tree.range.y2 + maxAsteroidSize))
+        .forEach(p => p.draw());//p.data.draw()); // draws only asteroids on visible screen
     ship.draw();
     HUD.draw();
 
