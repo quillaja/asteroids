@@ -9,8 +9,14 @@ const asteroidPalette = [
     [226, 232, 242], // ice
 ];
 
+/**
+ * @type {Map<number, Asteroid[]>} asteroids for recycling
+ */
+let roidRecycling = new Map();
+
 class Asteroid {
     static get MAX_SPEED() { return 16; } // pixels/frame
+    static get MAX_RADIUS() { return 128; } // pixels
 
     /**
      * Creates an asteroid
@@ -18,10 +24,11 @@ class Asteroid {
      * @param {number} dir direction as an angle/heading
      * @param {number} radius size of asteroid
      */
-    constructor(pos, dir, radius = 64) {
+    constructor(pos, dir, radius = undefined) {
         this.pos = pos;
         this.vel = p5.Vector.fromAngle(dir, Asteroid.MAX_SPEED / radius + random());
 
+        if (radius == undefined) radius = Asteroid.MAX_RADIUS;
         this.radius = radius;
         this.col = color(...random(asteroidPalette));
 
@@ -70,16 +77,22 @@ class Asteroid {
             // split into 2
             sounds.explosion.play();
             if (this.radius > 8) { // don't want them getting smaller than 8!
-                for (let i = 0; i < 2; i++) {
-                    let f = new Asteroid(
-                        this.pos.copy(),
-                        this.vel.heading() + random(-HALF_PI, HALF_PI),
-                        this.radius / 2
-                        // starting with 128 will produce: 128,64,32,16,8.
-                    );
-                    f.col = this.col;
-                    frags.push(f);
-                }
+                // for (let i = 0; i < 2; i++) {
+                //     let f = new Asteroid(
+                //         this.pos.copy(),
+                //         this.vel.heading() + random(-HALF_PI, HALF_PI),
+                //         this.radius / 2
+                //         // starting with 128 will produce: 128,64,32,16,8.
+                //     );
+                //     f.col = this.col;
+                //     frags.push(f);
+                // }
+                frags.push(...Asteroid.Get(this.radius / 2, 2));
+                // TODO: Ugh... manual "reset" after calling reset in Get(). 
+                frags.forEach(a => {
+                    a.pos = this.pos.copy();
+                    a.vel = p5.Vector.fromAngle(this.vel.heading() + random(-HALF_PI, HALF_PI), Asteroid.MAX_SPEED / a.radius);
+                });
             } else { // size 8 (and under) can have a chance to spawn a powerup
                 PowerUp.Roll(this.pos.copy());
             }
@@ -125,6 +138,14 @@ class Asteroid {
         pop();
     }
 
+    reset() {
+        let [loc, heading] = getLocAndDir();
+        this.pos.set(loc);
+        this.vel.rotate(heading - this.vel.heading());
+        this.isAlive = true;
+        this.life = this.radius / 16;
+    }
+
     /**
      * Creates new asteroids off screen at a random position around the edge.
      * @param {number} num how many to make
@@ -135,12 +156,66 @@ class Asteroid {
     static Generate(num = 1, radius = undefined) {
         let roids = [];
         for (; num > 0; num--) {
-            let spawnLoc = p5.Vector.fromAngle(random(0, TWO_PI), dist(0, 0, width / 2, height / 2));
-            let reverseHeading = spawnLoc.heading() + PI + random(-PI / 6, PI / 6);
-            spawnLoc.mult(1.1).add(cam.center.x, cam.center.y); // lengthen slightly and translate to screen center
-
+            let [spawnLoc, reverseHeading] = getLocAndDir();
             roids.push(new Asteroid(spawnLoc, reverseHeading, radius));
         }
         return roids;
     }
+
+    /**
+     * Reclaim asteroids fron recycling. Will generate new ones if 
+     * there are not enough of the given size available.
+     * @param {number} radius size of asteroid(s) to retrieve
+     * @param {number} num number to retrieve
+     * @returns {Asteroid[]} the roids you're looking for.
+     */
+    static Get(radius, num) {
+        let roids = [];
+        if (roidRecycling.has(radius)) {
+            let bin = roidRecycling.get(radius);
+
+            if (num <= bin.length) {
+                // there are enough in the recycling. take what is needed.
+                roids = bin.splice(bin.length - num, num);
+                num = 0; // don't need to generate any more
+            } else {
+                // we're taking them all
+                [bin, roids] = [roids, bin]; // swap (empty) roids and bin
+                num -= roids.length; // modify num to contain the amout we still need to generate
+            }
+
+            // asteroids in roids need "reset"
+            roids.forEach(a => a.reset());
+        }
+
+        // generate asteroids if 1) there are none 2) the amount available was insufficent
+        if (num > 0) {
+            roids.push(...Asteroid.Generate(num, radius));
+        }
+        return roids;
+
+    }
+
+    /**
+     * Puts an asteroid into recycling.
+     * @param {Asteroid} a the asteroid to recycle.
+     */
+    static Put(a) {
+        if (roidRecycling.has(a.radius)) {
+            roidRecycling.get(a.radius).push(a);
+        } else {
+            roidRecycling.set(a.radius, [a]);
+        }
+    }
+}
+
+/**
+ * @returns {[p5.Vector, number]} hi mom
+ */
+function getLocAndDir() {
+    let spawnLoc = p5.Vector.fromAngle(random(0, TWO_PI), dist(0, 0, width / 2, height / 2));
+    let reverseHeading = spawnLoc.heading() + PI + random(-PI / 6, PI / 6);
+    spawnLoc.mult(1.1).add(cam.center.x, cam.center.y); // lengthen slightly and translate to screen center
+
+    return [spawnLoc, reverseHeading];
 }

@@ -177,7 +177,8 @@ function initialize(restart = false) {
     ship = new Ship();
     if (restart) { ship.isGod = true; spawnAfter = Infinity; }
     cam = new Camera(250);
-    asteroids = Asteroid.Generate(1, maxAsteroidSize);
+    asteroids = Asteroid.Get(maxAsteroidSize, 1);
+    // asteroids = Asteroid.Generate(1, maxAsteroidSize);
     powerUps = [];
 }
 
@@ -248,7 +249,13 @@ function draw() {
     powerUps = powerUps.filter(p => p.isAlive);
 
     let prevLen = asteroids.length;
-    asteroids = asteroids.filter(a => a.isAlive);
+    asteroids.forEach((a, i) => {
+        if (!a.isAlive) {
+            Asteroid.Put(a);
+            asteroids.splice(i, 1);
+        }
+    })
+    // asteroids = asteroids.filter(a => a.isAlive);
     ship.score += prevLen - asteroids.length;
 
     // add new
@@ -257,7 +264,8 @@ function draw() {
     // spawn new large asteroids
     spawnCounter++;
     if (spawnCounter >= spawnAfter) {
-        asteroids.push(...Asteroid.Generate(1, maxAsteroidSize));
+        asteroids.push(...Asteroid.Get(maxAsteroidSize, 1));
+        // asteroids.push(...Asteroid.Generate(1, maxAsteroidSize));
         spawnCounter = 0;
     }
 
