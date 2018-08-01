@@ -249,12 +249,9 @@ function draw() {
     powerUps = powerUps.filter(p => p.isAlive);
 
     let prevLen = asteroids.length;
-    asteroids.forEach((a, i) => {
-        if (!a.isAlive) {
-            Asteroid.Put(a);
-            asteroids.splice(i, 1);
-        }
-    })
+    let dead = asteroids.filter(a => !a.isAlive);
+    asteroids = asteroids.filter(a => a.isAlive);
+    dead.forEach(a => Asteroid.Put(a));
     // asteroids = asteroids.filter(a => a.isAlive);
     ship.score += prevLen - asteroids.length;
 
